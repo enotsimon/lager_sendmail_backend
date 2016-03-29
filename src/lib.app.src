@@ -1,6 +1,0 @@
-{application, lib, [
-	{description, "common modules for our projects"},
-	{vsn, "1.0"},
-	{applications, [kernel, stdlib]},
-	{env, []}
-]}.

@@ -1,0 +1,6 @@
+{application, lager_sendmail_backend, [
+	{description, "backend for erlang basho lager (https://github.com/basho/lager) that sends letters thru sendmail"},
+	{vsn, "0.0.1"},
+	{applications, [kernel, stdlib]},
+	{env, []}
+]}.
