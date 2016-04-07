@@ -9,7 +9,7 @@ backend for erlang basho lager (https://github.com/basho/lager) that sends lette
 
 add
 
-`{lager_sendmail_backend, ".*", {git, "https://github.com/skorobogatko/lager_sendmail_backend.git", {branch, "master"}}}`
+`{lager_sendmail_backend, ".*", {git, "https://github.com/enotsimon/lager_sendmail_backend.git", {branch, "master"}}}`
 
 to your `rebar.config` file in your erlang app
 
