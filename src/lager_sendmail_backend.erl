@@ -101,8 +101,9 @@ handle_log(Message, SeverityAsInt, #state{level = Level} = State) when SeverityA
 	{Date, Time} = lager_msg:datetime(Message),
 	Severity = lager_msg:severity(Message),
 	Metadata = lager_msg:metadata(Message),
-	Format = "~s ~s ~p\nmessage: ~ts\nmeta: ~p",
-	LetterText = unicode:characters_to_binary(io_lib:format(Format, [Date, Time, Severity, Msg, Metadata])),
+	{ok, Host} = inet:gethostname(),
+	Format = "~s ~s ~p\nmessage: ~ts\nmeta: ~p\nhost: ~p",
+	LetterText = unicode:characters_to_binary(io_lib:format(Format, [Date, Time, Severity, Msg, Metadata, Host])),
 	#state{messages = Messages, msg_count = MsgCount, timer = Timer, uid = Uid} = State,
 	State#state{timer = install_new_timer(Timer, Uid), msg_count = MsgCount+1, messages = [LetterText | Messages]};
 
