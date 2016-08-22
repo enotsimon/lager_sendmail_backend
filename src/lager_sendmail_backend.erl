@@ -16,7 +16,8 @@
 		msg_limit :: integer(),
 		timer = void :: reference()|'void',
 		messages = [] :: list(),
-		msg_count = 0 :: integer()
+		msg_count = 0 :: integer(),
+		sendmail_cmd :: list()
 	}).
 
 init(Config) ->
@@ -26,7 +27,8 @@ init(Config) ->
 			to = [list_to_binary(E) || E <- proplists:get_value(to, Config)],
 			subject = list_to_binary(proplists:get_value(subject, Config)),
 			level = lager_util:level_to_num(proplists:get_value(level, Config)),
-			msg_limit = proplists:get_value(msg_limit, Config, ?MSG_LIMIT)
+			msg_limit = proplists:get_value(msg_limit, Config, ?MSG_LIMIT),
+			sendmail_cmd = proplists:get_value(sendmail_cmd, Config, "/usr/sbin/sendmail -t")
 		}}.
 
 
@@ -74,7 +76,8 @@ handle_info({flush_aggregated, MUid}, #state{uid = Uid} = State) when MUid =:= U
 	end,
 	Data = << << LetterText/binary, "\n\n" >> || LetterText <- DDD >>,
 	To = << <<" ", E/binary>> || E <- State#state.to >>,
-	send(To, State#state.from, State#state.subject, Data),
+	SendmailCmd = State#state.sendmail_cmd,
+	send(To, State#state.from, State#state.subject, Data, SendmailCmd),
 	{ok, State#state{timer = void, msg_count = 0, messages = []}};
 
 % not our 'flush_aggregated' message
@@ -116,7 +119,7 @@ install_new_timer(Timer, _Uid) -> Timer.
 
 
 
-send(To, From, Subject, Message) ->
+send(To, From, Subject, Message, SendmailCmd) ->
 	Letter = <<
 		"To: ", To/binary, "\r\n",
 		"MIME-Version: 1.0\r\n",
@@ -128,7 +131,7 @@ send(To, From, Subject, Message) ->
 		Message/binary,
 		"\r\n.\r\n"
 	>>,
-	Port = open_port({spawn, "/usr/sbin/sendmail -t"}, [binary]),
+	Port = open_port({spawn, SendmailCmd}, [binary]),
 	Port ! {self(), {command, Letter}},
 	port_close(Port).
 
