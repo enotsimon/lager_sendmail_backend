@@ -1,6 +1,6 @@
 # lager_sendmail_backend
 
-## overwiev
+## overview
 
 backend for erlang basho lager (https://github.com/basho/lager) that sends letters thru sendmail
 
