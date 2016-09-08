@@ -5,7 +5,7 @@
 -export([init/1, handle_call/2, handle_event/2, handle_info/2, terminate/2, code_change/3]).
 
 -define(DEFAULT_AGGREGATE_INTERVAL, 600000).
--define(MSG_LIMIT, 20).
+-define(DEFAULT_MSG_LIMIT, 20).
 
 -record(state,{
 		uid :: {integer(), integer(), integer()},
@@ -28,7 +28,7 @@ init(Config) ->
 			to = [list_to_binary(E) || E <- proplists:get_value(to, Config)],
 			subject = list_to_binary(proplists:get_value(subject, Config)),
 			level = lager_util:level_to_num(proplists:get_value(level, Config)),
-			msg_limit = proplists:get_value(msg_limit, Config, ?MSG_LIMIT),
+			msg_limit = proplists:get_value(msg_limit, Config, ?DEFAULT_MSG_LIMIT),
 			aggregate_interval = proplists:get_value(aggregate_interval, Config, ?DEFAULT_AGGREGATE_INTERVAL),
 			sendmail_cmd = proplists:get_value(sendmail_cmd, Config, "/usr/sbin/sendmail -t")
 		}}.
