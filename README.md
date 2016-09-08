@@ -26,7 +26,7 @@ add to your app config files something like this
             {from, "lager_sendmail_backend <from@example.com>"},
             {to, ["errors@example.com"]},
             {subject, "erlang errors in my app"},
-            {aggregate_interval, 60000}, % aggregate messages every 1 min. thats default
+            {aggregate_interval, 600000}, % aggregation interval (10 minutes by default)
             {msg_limit, 20}, % messages per letter. thats default
             {sendmail_cmd, "/usr/sbin/sendmail -t"} % cmd to send email. thats default. use "cat > bla" for debug
         ]},
