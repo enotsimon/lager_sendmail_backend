@@ -4,7 +4,7 @@
 
 -export([init/1, handle_call/2, handle_event/2, handle_info/2, terminate/2, code_change/3]).
 
--define(AGGREGATE_TIME, 60000).
+-define(DEFAULT_AGGREGATE_INTERVAL, 600000).
 -define(MSG_LIMIT, 20).
 
 -record(state,{
@@ -15,6 +15,7 @@
 		level :: integer(),
 		msg_limit :: integer(),
 		timer = void :: reference()|'void',
+		aggregate_interval :: integer(),
 		messages = [] :: list(),
 		msg_count = 0 :: integer(),
 		sendmail_cmd :: list()
@@ -28,6 +29,7 @@ init(Config) ->
 			subject = list_to_binary(proplists:get_value(subject, Config)),
 			level = lager_util:level_to_num(proplists:get_value(level, Config)),
 			msg_limit = proplists:get_value(msg_limit, Config, ?MSG_LIMIT),
+			aggregate_interval = proplists:get_value(aggregate_interval, Config, ?DEFAULT_AGGREGATE_INTERVAL),
 			sendmail_cmd = proplists:get_value(sendmail_cmd, Config, "/usr/sbin/sendmail -t")
 		}}.
 
@@ -107,15 +109,16 @@ handle_log(Message, SeverityAsInt, #state{level = Level} = State) when SeverityA
 	{ok, Host} = inet:gethostname(),
 	Format = "~s ~s ~p\nmessage: ~ts\nmeta: ~p\nhost: ~p",
 	LetterText = unicode:characters_to_binary(io_lib:format(Format, [Date, Time, Severity, Msg, Metadata, Host])),
-	#state{messages = Messages, msg_count = MsgCount, timer = Timer, uid = Uid} = State,
-	State#state{timer = install_new_timer(Timer, Uid), msg_count = MsgCount+1, messages = [LetterText | Messages]};
+	#state{messages = Messages, msg_count = MsgCount} = State,
+	install_new_timer(State#state{msg_count = MsgCount + 1, messages = [LetterText | Messages]});
 
 handle_log(_Message, _SeverityAsInt, State) ->
 	State.
 
 
-install_new_timer(void, Uid) -> erlang:send_after(?AGGREGATE_TIME, self(), {flush_aggregated, Uid});
-install_new_timer(Timer, _Uid) -> Timer. 
+install_new_timer(#state{timer = void, aggregate_interval = Interval, uid = Uid} = State) ->
+	State#state{timer = erlang:send_after(Interval, self(), {flush_aggregated, Uid})};
+install_new_timer(State) -> State.
 
 
 
